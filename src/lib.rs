@@ -4,7 +4,7 @@ mod bitmap;
 mod hexmap;
 mod row;
 
-pub use bitmap::{assert_bitmaps, bitmap_diff, bitmap_eq, plot_bits, plot_spans};
+pub use bitmap::{assert_bitmaps, bitmap_diff, plot_bits, plot_spans};
 pub use hexmap::{assert_hexmaps, hexmap_diff, hexmap_eq, plot_hex};
 pub use row::Packed;
 

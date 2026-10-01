@@ -1,6 +1,6 @@
 //! 1-bit cells packed into integer rows (`0b…`). MSB = x = 0.
 
-use crate::{fmt_points, label_width, rows_eq, Diff, Packed};
+use crate::{fmt_points, label_width, Diff, Packed};
 use std::fmt::Write;
 
 /// Pack points into `H` rows of `T::BITS` bits, MSB = x = 0.
@@ -31,14 +31,9 @@ pub fn plot_spans<T: Packed, const H: usize>(
     }))
 }
 
-/// `true` when each packed row matches.
-pub fn bitmap_eq<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) -> bool {
-    rows_eq(actual.as_ref(), expected.as_ref())
-}
-
 /// Overlay of a mismatch, or `None` when the grids match.
 pub fn bitmap_diff<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) -> Option<Diff> {
-    if bitmap_eq(&actual, &expected) {
+    if actual.as_ref() == expected.as_ref() {
         return None;
     }
     Some(overlay(actual.as_ref(), expected.as_ref()))

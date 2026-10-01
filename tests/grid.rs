@@ -1,6 +1,6 @@
 use bitlit::{
-    assert_bitmap_eq, assert_hexmap_eq, bitmap_diff, bitmap_eq, hexmap_diff, hexmap_eq, plot_bits,
-    plot_hex, plot_spans,
+    assert_bitmap_eq, assert_hexmap_eq, bitmap_diff, hexmap_diff, hexmap_eq, plot_bits, plot_hex,
+    plot_spans,
 };
 
 #[test]
@@ -25,17 +25,6 @@ fn plot_bits_packs_msb_left() {
         [0b1000_0000, 0b0010_0000]
     );
     assert_eq!(plot_spans::<u8, 1>([(1, 3, 0)]), [0b0111_0000]);
-}
-
-#[test]
-fn bitmap_eq_compares_full_rows() {
-    assert!(bitmap_eq([0b0101_0000u8], [0b0101_0000u8]));
-    assert!(!bitmap_eq([0b1101_0000u8], [0b0101_0000u8]));
-}
-
-#[test]
-fn bitmap_eq_rejects_row_count_mismatch() {
-    assert!(!bitmap_eq([0b1000_0000u8, 0], [0b1000_0000u8]));
 }
 
 #[test]
