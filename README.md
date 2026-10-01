@@ -26,6 +26,42 @@ assert_bitmap_eq!(plot_bits::<u8, 8>((0..=7).map(|i| (i, i))), [
 assert_hexmap_eq!([0x1F00u16], [0x1F00]);
 ```
 
+Same line, but the plot omits `(0, 0)` and `(7, 7)` and adds the other two corners.
+The assertion panics with an overlay (`#` match, `.` empty, `-` missing, `+` extra):
+
+```rust,ignore
+use bitlit::{assert_bitmap_eq, plot_bits};
+
+#[rustfmt::skip]
+assert_bitmap_eq!(
+    plot_bits::<u8, 8>((1..=6).map(|i| (i, i)).chain([(7, 0), (0, 7)])),
+    [
+        0b10000000, // #.......
+        0b01000000, // .#......
+        0b00100000, // ..#.....
+        0b00010000, // ...#....
+        0b00001000, // ....#...
+        0b00000100, // .....#..
+        0b00000010, // ......#.
+        0b00000001, // .......#
+    ],
+);
+```
+
+```text
+bitmap mismatch (# match  . empty  - missing  + extra)
+0 | -......+
+1 | .#......
+2 | ..#.....
+3 | ...#....
+4 | ....#...
+5 | .....#..
+6 | ......#.
+7 | +......-
+missing: (0, 0), (7, 7)
+extra: (7, 0), (0, 7)
+```
+
 Bitmap overlay: `#` match, `.` empty, `-` missing, `+` extra. Hex overlay
 prints the nibble on a match (`0` as `.`) and `*` when both cells are set but
 differ. Runtime equality is `==`. `bitmap_diff` / `hexmap_diff` return the
