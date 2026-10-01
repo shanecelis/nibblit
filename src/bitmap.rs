@@ -1,15 +1,14 @@
 //! 1-bit cells packed into integer rows (`0b…`). MSB = x = 0.
 
-use crate::{fmt_points, label_width, rows_eq, Diff, Row};
+use crate::{fmt_points, label_width, rows_eq, Diff, Packed};
 use std::fmt::Write;
 
-/// Pack points into `H` rows of `width` bits, MSB = x = 0.
+/// Pack points into `H` rows of `T::BITS` bits, MSB = x = 0.
 #[track_caller]
-pub fn plot_bits<const H: usize>(
+pub fn plot_bits<T: Packed, const H: usize>(
     points: impl IntoIterator<Item = (isize, isize)>,
-    width: u32,
-) -> [u64; H] {
-    assert!(width <= 64, "bitmap width {width} exceeds 64 bits");
+) -> [T; H] {
+    let width = T::BITS;
     let mut grid = [0u64; H];
     for (x, y) in points {
         assert!(
@@ -18,76 +17,51 @@ pub fn plot_bits<const H: usize>(
         );
         grid[y as usize] |= 1 << (width - 1 - x as u32);
     }
-    grid
+    core::array::from_fn(|y| T::from_bits(grid[y]))
 }
 
 /// Pack inclusive `[x0, x1]` spans on row `y`, MSB = x = 0.
 #[track_caller]
-pub fn plot_spans<const H: usize>(
+pub fn plot_spans<T: Packed, const H: usize>(
     spans: impl IntoIterator<Item = (isize, isize, isize)>,
-    width: u32,
-) -> [u64; H] {
-    plot_bits(
-        spans.into_iter().flat_map(|(x0, x1, y)| {
-            assert!(x0 <= x1, "x0={x0} > x1={x1} y={y}");
-            (x0..=x1).map(move |x| (x, y))
-        }),
-        width,
-    )
+) -> [T; H] {
+    plot_bits(spans.into_iter().flat_map(|(x0, x1, y)| {
+        assert!(x0 <= x1, "x0={x0} > x1={x1} y={y}");
+        (x0..=x1).map(move |x| (x, y))
+    }))
 }
 
-/// `true` when the visible `width` bits of each row match.
-pub fn bitmap_eq<A, E, Ta, Te>(actual: A, expected: E, width: u32) -> bool
-where
-    A: AsRef<[Ta]>,
-    E: AsRef<[Te]>,
-    Ta: Row,
-    Te: Row,
-{
-    rows_eq(actual.as_ref(), expected.as_ref(), width)
+/// `true` when each packed row matches.
+pub fn bitmap_eq<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) -> bool {
+    rows_eq(actual.as_ref(), expected.as_ref())
 }
 
 /// Overlay of a mismatch, or `None` when the grids match.
-pub fn bitmap_diff<A, E, Ta, Te>(actual: A, expected: E, width: u32) -> Option<Diff>
-where
-    A: AsRef<[Ta]>,
-    E: AsRef<[Te]>,
-    Ta: Row,
-    Te: Row,
-{
-    if bitmap_eq(&actual, &expected, width) {
+pub fn bitmap_diff<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) -> Option<Diff> {
+    if bitmap_eq(&actual, &expected) {
         return None;
     }
-    Some(overlay(actual.as_ref(), expected.as_ref(), width))
+    Some(overlay(actual.as_ref(), expected.as_ref()))
 }
 
 /// Compare packed bitmap rows and panic with an overlay on mismatch.
 #[track_caller]
-pub fn assert_bitmaps<A, E, Ta, Te>(actual: A, expected: E, width: u32)
-where
-    A: AsRef<[Ta]>,
-    E: AsRef<[Te]>,
-    Ta: Row,
-    Te: Row,
-{
-    if let Some(diff) = bitmap_diff(actual, expected, width) {
+pub fn assert_bitmaps<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) {
+    if let Some(diff) = bitmap_diff(actual, expected) {
         panic!("bitmap mismatch (# match  . empty  - missing  + extra)\n{diff}");
     }
 }
 
-fn overlay<A, E>(actual: &[A], expected: &[E], width: u32) -> Diff
-where
-    A: Row,
-    E: Row,
-{
+fn overlay<T: Packed>(actual: &[T], expected: &[T]) -> Diff {
+    let width = T::BITS;
     let rows = actual.len().max(expected.len());
     let label = label_width(rows);
     let mut missing = Vec::new();
     let mut extra = Vec::new();
     let mut out = String::new();
     for y in 0..rows {
-        let act = actual.get(y).copied().map(Row::row).unwrap_or(0);
-        let exp = expected.get(y).copied().map(Row::row).unwrap_or(0);
+        let act = actual.get(y).copied().map(Packed::bits).unwrap_or(0);
+        let exp = expected.get(y).copied().map(Packed::bits).unwrap_or(0);
         let _ = write!(out, "{y:label$} | ");
         for x in 0..width {
             let shift = width - 1 - x;

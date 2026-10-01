@@ -1,17 +1,16 @@
 //! 4-bit cells packed into integer rows (`0x…`). High nibble = x = 0.
 
-use crate::{fmt_points, label_width, rows_eq, Diff, Row};
+use crate::{fmt_points, label_width, rows_eq, Diff, Packed};
 use std::fmt::Write;
 
-/// Pack `(x, y, nibble)` cells into `H` rows of `width` nibbles.
+/// Pack `(x, y, nibble)` cells into `H` rows of `T::BITS / 4` nibbles.
 ///
 /// High nibble = x = 0. `nibble` must be `0..=15`.
 #[track_caller]
-pub fn plot_hex<const H: usize>(
+pub fn plot_hex<T: Packed, const H: usize>(
     cells: impl IntoIterator<Item = (isize, isize, u8)>,
-    width: u32,
-) -> [u64; H] {
-    assert!(width <= 16, "hexmap width {width} exceeds 16 nibbles");
+) -> [T; H] {
+    let width = T::BITS / 4;
     let mut grid = [0u64; H];
     for (x, y, nibble) in cells {
         assert!(nibble <= 0xf, "nibble {nibble:#x} at ({x},{y}) exceeds 0xf");
@@ -21,54 +20,32 @@ pub fn plot_hex<const H: usize>(
         );
         grid[y as usize] |= u64::from(nibble) << (4 * (width - 1 - x as u32));
     }
-    grid
+    core::array::from_fn(|y| T::from_bits(grid[y]))
 }
 
-/// `true` when the visible `width` nibbles of each row match.
-pub fn hexmap_eq<A, E, Ta, Te>(actual: A, expected: E, width: u32) -> bool
-where
-    A: AsRef<[Ta]>,
-    E: AsRef<[Te]>,
-    Ta: Row,
-    Te: Row,
-{
-    assert!(width <= 16, "hexmap width {width} exceeds 16 nibbles");
-    rows_eq(actual.as_ref(), expected.as_ref(), width.saturating_mul(4))
+/// `true` when each packed row matches.
+pub fn hexmap_eq<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) -> bool {
+    rows_eq(actual.as_ref(), expected.as_ref())
 }
 
 /// Overlay of a mismatch, or `None` when the grids match.
-pub fn hexmap_diff<A, E, Ta, Te>(actual: A, expected: E, width: u32) -> Option<Diff>
-where
-    A: AsRef<[Ta]>,
-    E: AsRef<[Te]>,
-    Ta: Row,
-    Te: Row,
-{
-    if hexmap_eq(&actual, &expected, width) {
+pub fn hexmap_diff<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) -> Option<Diff> {
+    if hexmap_eq(&actual, &expected) {
         return None;
     }
-    Some(overlay(actual.as_ref(), expected.as_ref(), width))
+    Some(overlay(actual.as_ref(), expected.as_ref()))
 }
 
 /// Compare packed hexmap rows and panic with an overlay on mismatch.
 #[track_caller]
-pub fn assert_hexmaps<A, E, Ta, Te>(actual: A, expected: E, width: u32)
-where
-    A: AsRef<[Ta]>,
-    E: AsRef<[Te]>,
-    Ta: Row,
-    Te: Row,
-{
-    if let Some(diff) = hexmap_diff(actual, expected, width) {
+pub fn assert_hexmaps<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) {
+    if let Some(diff) = hexmap_diff(actual, expected) {
         panic!("hexmap mismatch (. empty  1-F match  - missing  + extra  * changed)\n{diff}");
     }
 }
 
-fn overlay<A, E>(actual: &[A], expected: &[E], width: u32) -> Diff
-where
-    A: Row,
-    E: Row,
-{
+fn overlay<T: Packed>(actual: &[T], expected: &[T]) -> Diff {
+    let width = T::BITS / 4;
     let rows = actual.len().max(expected.len());
     let label = label_width(rows);
     let mut missing = Vec::new();
@@ -76,8 +53,8 @@ where
     let mut changed = Vec::new();
     let mut out = String::new();
     for y in 0..rows {
-        let act = actual.get(y).copied().map(Row::row).unwrap_or(0);
-        let exp = expected.get(y).copied().map(Row::row).unwrap_or(0);
+        let act = actual.get(y).copied().map(Packed::bits).unwrap_or(0);
+        let exp = expected.get(y).copied().map(Packed::bits).unwrap_or(0);
         let _ = write!(out, "{y:label$} | ");
         for x in 0..width {
             let shift = 4 * (width - 1 - x);

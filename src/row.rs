@@ -1,19 +1,29 @@
-//! Integer rows that pack into a `u64`.
+//! Integer row types whose width is `size_of::<T>() * 8`.
 
-/// A packed row. Signed values keep their bit pattern (`as u64`).
-pub trait Row: Copy {
-    fn row(self) -> u64;
+/// A packed row. Width is `Self::BITS` cells (1-bit) or nibbles (`BITS / 4`).
+pub trait Packed: Copy + Eq {
+    const BITS: u32;
+
+    fn from_bits(bits: u64) -> Self;
+    fn bits(self) -> u64;
 }
 
-macro_rules! impl_row {
+macro_rules! impl_packed {
     ($($t:ty),*) => {$(
-        impl Row for $t {
+        impl Packed for $t {
+            const BITS: u32 = <$t>::BITS;
+
             #[inline]
-            fn row(self) -> u64 {
+            fn from_bits(bits: u64) -> Self {
+                bits as $t
+            }
+
+            #[inline]
+            fn bits(self) -> u64 {
                 self as u64
             }
         }
     )*};
 }
 
-impl_row!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize);
+impl_packed!(u8, u16, u32, u64);

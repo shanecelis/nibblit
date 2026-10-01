@@ -6,7 +6,7 @@ mod row;
 
 pub use bitmap::{assert_bitmaps, bitmap_diff, bitmap_eq, plot_bits, plot_spans};
 pub use hexmap::{assert_hexmaps, hexmap_diff, hexmap_eq, plot_hex};
-pub use row::Row;
+pub use row::Packed;
 
 /// A cell-wise mismatch overlay.
 ///
@@ -29,10 +29,11 @@ impl core::fmt::Display for Diff {
 /// Compare packed `0b` bitmap rows. Panics with an overlay on mismatch.
 ///
 /// Overlay glyphs: `#` match, `.` empty, `-` missing, `+` extra.
+/// Put `#[rustfmt::skip]` on the assertion so each row stays on its own line.
 #[macro_export]
 macro_rules! assert_bitmap_eq {
-    ($actual:expr, $expected:expr, $width:expr $(,)?) => {
-        $crate::assert_bitmaps($actual, $expected, $width)
+    ($actual:expr, $expected:expr $(,)?) => {
+        $crate::assert_bitmaps($actual, $expected)
     };
 }
 
@@ -40,35 +41,20 @@ macro_rules! assert_bitmap_eq {
 ///
 /// Overlay glyphs: `0` as `.`, `1`–`F` match, `-` missing, `+` extra, `*`
 /// changed.
+/// Put `#[rustfmt::skip]` on the assertion so each row stays on its own line.
 #[macro_export]
 macro_rules! assert_hexmap_eq {
-    ($actual:expr, $expected:expr, $width:expr $(,)?) => {
-        $crate::assert_hexmaps($actual, $expected, $width)
+    ($actual:expr, $expected:expr $(,)?) => {
+        $crate::assert_hexmaps($actual, $expected)
     };
 }
 
-pub(crate) fn bit_mask(bits: u32) -> u64 {
-    assert!(bits <= 64, "width {bits} exceeds 64 packed bits");
-    if bits == 64 {
-        u64::MAX
-    } else {
-        (1u64 << bits) - 1
-    }
-}
-
-pub(crate) fn rows_eq<A, E>(actual: &[A], expected: &[E], bits: u32) -> bool
-where
-    A: Row,
-    E: Row,
-{
-    if actual.len() != expected.len() {
-        return false;
-    }
-    let mask = bit_mask(bits);
-    actual
-        .iter()
-        .zip(expected)
-        .all(|(a, e)| a.row() & mask == e.row() & mask)
+pub(crate) fn rows_eq<T: Packed>(actual: &[T], expected: &[T]) -> bool {
+    actual.len() == expected.len()
+        && actual
+            .iter()
+            .zip(expected)
+            .all(|(a, e)| a.bits() == e.bits())
 }
 
 pub(crate) fn fmt_points(points: &[(u32, u32)]) -> String {
