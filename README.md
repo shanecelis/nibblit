@@ -11,20 +11,16 @@ does not wrap the grid.
 use bitlit::{assert_bitmap_eq, assert_hexmap_eq, plot_bits};
 
 #[rustfmt::skip]
-assert_bitmap_eq!(
-    [
-        0b1010_0000u8,
-        0b0101_0000,
-    ],
-    [
-        0b1010_0000,
-        0b0101_0000,
-    ],
-);
-assert_eq!(
-    plot_bits::<u8, 2>([(0, 0), (2, 1)]),
-    [0b1000_0000, 0b0010_0000],
-);
+assert_bitmap_eq!(plot_bits::<u8, 8>((0..=7).map(|i| (i, i))), [
+    0b10000000, // #.......
+    0b01000000, // .#......
+    0b00100000, // ..#.....
+    0b00010000, // ...#....
+    0b00001000, // ....#...
+    0b00000100, // .....#..
+    0b00000010, // ......#.
+    0b00000001, // .......#
+]);
 
 #[rustfmt::skip]
 assert_hexmap_eq!([0x1F00u16], [0x1F00]);

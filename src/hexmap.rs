@@ -1,6 +1,6 @@
 //! 4-bit cells packed into integer rows (`0x…`). High nibble = x = 0.
 
-use crate::{fmt_points, label_width, rows_eq, Diff, Packed};
+use crate::{fmt_points, label_width, Diff, Packed};
 use std::fmt::Write;
 
 /// Pack `(x, y, nibble)` cells into `H` rows of `T::BITS / 4` nibbles.
@@ -23,14 +23,9 @@ pub fn plot_hex<T: Packed, const H: usize>(
     core::array::from_fn(|y| T::from_bits(grid[y]))
 }
 
-/// `true` when each packed row matches.
-pub fn hexmap_eq<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) -> bool {
-    rows_eq(actual.as_ref(), expected.as_ref())
-}
-
 /// Overlay of a mismatch, or `None` when the grids match.
 pub fn hexmap_diff<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) -> Option<Diff> {
-    if hexmap_eq(&actual, &expected) {
+    if actual.as_ref() == expected.as_ref() {
         return None;
     }
     Some(overlay(actual.as_ref(), expected.as_ref()))

@@ -5,7 +5,7 @@ mod hexmap;
 mod row;
 
 pub use bitmap::{assert_bitmaps, assert_bitmaps_msg, bitmap_diff, plot_bits, plot_spans};
-pub use hexmap::{assert_hexmaps, assert_hexmaps_msg, hexmap_diff, hexmap_eq, plot_hex};
+pub use hexmap::{assert_hexmaps, assert_hexmaps_msg, hexmap_diff, plot_hex};
 pub use row::Packed;
 
 /// A cell-wise mismatch overlay.
@@ -55,14 +55,6 @@ macro_rules! assert_hexmap_eq {
     ($actual:expr, $expected:expr, $($arg:tt)+) => {
         $crate::assert_hexmaps_msg($actual, $expected, ::core::format_args!($($arg)+))
     };
-}
-
-pub(crate) fn rows_eq<T: Packed>(actual: &[T], expected: &[T]) -> bool {
-    actual.len() == expected.len()
-        && actual
-            .iter()
-            .zip(expected)
-            .all(|(a, e)| a.bits() == e.bits())
 }
 
 pub(crate) fn fmt_points(points: &[(u32, u32)]) -> String {

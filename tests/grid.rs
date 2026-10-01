@@ -1,6 +1,5 @@
 use bitlit::{
-    assert_bitmap_eq, assert_hexmap_eq, bitmap_diff, hexmap_diff, hexmap_eq, plot_bits, plot_hex,
-    plot_spans,
+    assert_bitmap_eq, assert_hexmap_eq, bitmap_diff, hexmap_diff, plot_bits, plot_hex, plot_spans,
 };
 
 #[test]
@@ -93,7 +92,6 @@ fn bitmap_diff_is_none_when_equal() {
 fn equal_hexmaps_pass() {
     #[rustfmt::skip]
     assert_hexmap_eq!([0x1F00u16], [0x1F00]);
-    assert!(hexmap_eq([0x1F00u16], [0x1F00u16]));
 }
 
 #[test]
