@@ -44,6 +44,21 @@ pub fn assert_hexmaps<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[
     }
 }
 
+/// [`assert_hexmaps`] with a custom panic prefix, from `assert_hexmap_eq!(.., "{msg}", ...)`.
+#[doc(hidden)]
+#[track_caller]
+pub fn assert_hexmaps_msg<T: Packed>(
+    actual: impl AsRef<[T]>,
+    expected: impl AsRef<[T]>,
+    msg: core::fmt::Arguments<'_>,
+) {
+    if let Some(diff) = hexmap_diff(actual, expected) {
+        panic!(
+            "hexmap mismatch (. empty  1-F match  - missing  + extra  * changed): {msg}\n{diff}"
+        );
+    }
+}
+
 fn overlay<T: Packed>(actual: &[T], expected: &[T]) -> Diff {
     let width = T::BITS / 4;
     let rows = actual.len().max(expected.len());

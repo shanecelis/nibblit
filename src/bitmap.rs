@@ -47,6 +47,19 @@ pub fn assert_bitmaps<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[
     }
 }
 
+/// [`assert_bitmaps`] with a custom panic prefix, from `assert_bitmap_eq!(.., "{msg}", ...)`.
+#[doc(hidden)]
+#[track_caller]
+pub fn assert_bitmaps_msg<T: Packed>(
+    actual: impl AsRef<[T]>,
+    expected: impl AsRef<[T]>,
+    msg: core::fmt::Arguments<'_>,
+) {
+    if let Some(diff) = bitmap_diff(actual, expected) {
+        panic!("bitmap mismatch (# match  . empty  - missing  + extra): {msg}\n{diff}");
+    }
+}
+
 fn overlay<T: Packed>(actual: &[T], expected: &[T]) -> Diff {
     let width = T::BITS;
     let rows = actual.len().max(expected.len());

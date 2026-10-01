@@ -67,6 +67,24 @@ fn mismatch_marks_missing_and_extra() {
 }
 
 #[test]
+fn custom_message_is_in_the_panic() {
+    let case = 4;
+    let err = std::panic::catch_unwind(|| {
+        assert_bitmap_eq!([0b0100_0000u8], [0b1000_0000u8], "circ r={case}");
+    })
+    .expect_err("grids differ");
+    let msg = panic_message(&err);
+    assert!(
+        msg.contains("circ r=4"),
+        "custom message should appear: {msg}"
+    );
+    assert!(
+        msg.contains("0 | -+......"),
+        "overlay should still follow: {msg}"
+    );
+}
+
+#[test]
 fn bitmap_diff_is_none_when_equal() {
     assert!(bitmap_diff([0b1010_0000u8], [0b1010_0000u8]).is_none());
 }

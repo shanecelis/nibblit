@@ -33,7 +33,8 @@ assert_hexmap_eq!([0x1F00u16], [0x1F00]);
 Bitmap overlay: `#` match, `.` empty, `-` missing, `+` extra. Hex overlay
 prints the nibble on a match (`0` as `.`) and `*` when both cells are set but
 differ. Runtime equality is `==`. `bitmap_diff` / `hexmap_diff` return the
-overlay without panicking.
+overlay without panicking. `assert_bitmap_eq!` / `assert_hexmap_eq!` take an
+optional format string, same as `assert_eq!`.
 
 ## License
 

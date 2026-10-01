@@ -4,8 +4,8 @@ mod bitmap;
 mod hexmap;
 mod row;
 
-pub use bitmap::{assert_bitmaps, bitmap_diff, plot_bits, plot_spans};
-pub use hexmap::{assert_hexmaps, hexmap_diff, hexmap_eq, plot_hex};
+pub use bitmap::{assert_bitmaps, assert_bitmaps_msg, bitmap_diff, plot_bits, plot_spans};
+pub use hexmap::{assert_hexmaps, assert_hexmaps_msg, hexmap_diff, hexmap_eq, plot_hex};
 pub use row::Packed;
 
 /// A cell-wise mismatch overlay.
@@ -30,10 +30,14 @@ impl core::fmt::Display for Diff {
 ///
 /// Overlay glyphs: `#` match, `.` empty, `-` missing, `+` extra.
 /// Put `#[rustfmt::skip]` on the assertion so each row stays on its own line.
+/// A trailing format string is included in the panic, same as [`assert_eq!`].
 #[macro_export]
 macro_rules! assert_bitmap_eq {
     ($actual:expr, $expected:expr $(,)?) => {
         $crate::assert_bitmaps($actual, $expected)
+    };
+    ($actual:expr, $expected:expr, $($arg:tt)+) => {
+        $crate::assert_bitmaps_msg($actual, $expected, ::core::format_args!($($arg)+))
     };
 }
 
@@ -42,10 +46,14 @@ macro_rules! assert_bitmap_eq {
 /// Overlay glyphs: `0` as `.`, `1`–`F` match, `-` missing, `+` extra, `*`
 /// changed.
 /// Put `#[rustfmt::skip]` on the assertion so each row stays on its own line.
+/// A trailing format string is included in the panic, same as [`assert_eq!`].
 #[macro_export]
 macro_rules! assert_hexmap_eq {
     ($actual:expr, $expected:expr $(,)?) => {
         $crate::assert_hexmaps($actual, $expected)
+    };
+    ($actual:expr, $expected:expr, $($arg:tt)+) => {
+        $crate::assert_hexmaps_msg($actual, $expected, ::core::format_args!($($arg)+))
     };
 }
 
