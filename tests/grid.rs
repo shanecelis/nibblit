@@ -1,5 +1,5 @@
 use bitlit::{
-    assert_bitmap_eq, assert_hexmap_eq, bitmap_diff, hexmap_diff, plot_bits, plot_hex, plot_spans,
+    assert_bitmap_eq, assert_hexmap_eq, bitmap_diff, hexmap_diff, plot_bits, plot_hex,
 };
 
 #[test]
@@ -23,7 +23,6 @@ fn plot_bits_packs_msb_left() {
         plot_bits::<u8, 2>([(0, 0), (2, 1)]),
         [0b1000_0000, 0b0010_0000]
     );
-    assert_eq!(plot_spans::<u8, 1>([(1, 3, 0)]), [0b0111_0000]);
 }
 
 #[test]

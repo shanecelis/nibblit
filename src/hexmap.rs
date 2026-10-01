@@ -32,6 +32,7 @@ pub fn hexmap_diff<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>
 }
 
 /// Compare packed hexmap rows and panic with an overlay on mismatch.
+#[doc(hidden)]
 #[track_caller]
 pub fn assert_hexmaps<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) {
     if let Some(diff) = hexmap_diff(actual, expected) {

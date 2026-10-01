@@ -4,8 +4,12 @@ mod bitmap;
 mod hexmap;
 mod row;
 
-pub use bitmap::{assert_bitmaps, assert_bitmaps_msg, bitmap_diff, plot_bits, plot_spans};
-pub use hexmap::{assert_hexmaps, assert_hexmaps_msg, hexmap_diff, plot_hex};
+pub use bitmap::{bitmap_diff, plot_bits};
+pub use hexmap::{hexmap_diff, plot_hex};
+#[doc(hidden)]
+pub use bitmap::{assert_bitmaps, assert_bitmaps_msg};
+#[doc(hidden)]
+pub use hexmap::{assert_hexmaps, assert_hexmaps_msg};
 pub use row::Packed;
 
 /// A cell-wise mismatch overlay.

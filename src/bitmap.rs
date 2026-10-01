@@ -20,17 +20,6 @@ pub fn plot_bits<T: Packed, const H: usize>(
     core::array::from_fn(|y| T::from_bits(grid[y]))
 }
 
-/// Pack inclusive `[x0, x1]` spans on row `y`, MSB = x = 0.
-#[track_caller]
-pub fn plot_spans<T: Packed, const H: usize>(
-    spans: impl IntoIterator<Item = (isize, isize, isize)>,
-) -> [T; H] {
-    plot_bits(spans.into_iter().flat_map(|(x0, x1, y)| {
-        assert!(x0 <= x1, "x0={x0} > x1={x1} y={y}");
-        (x0..=x1).map(move |x| (x, y))
-    }))
-}
-
 /// Overlay of a mismatch, or `None` when the grids match.
 pub fn bitmap_diff<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) -> Option<Diff> {
     if actual.as_ref() == expected.as_ref() {
@@ -40,6 +29,7 @@ pub fn bitmap_diff<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>
 }
 
 /// Compare packed bitmap rows and panic with an overlay on mismatch.
+#[doc(hidden)]
 #[track_caller]
 pub fn assert_bitmaps<T: Packed>(actual: impl AsRef<[T]>, expected: impl AsRef<[T]>) {
     if let Some(diff) = bitmap_diff(actual, expected) {
