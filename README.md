@@ -1,5 +1,33 @@
 # bitlit
 
+This crate checks equality of bitmap literals and hexmap literals. 
+
+## Motivation
+
+When an algorithm produces visual results, one wants to verify the results
+visually.
+
+## The Trick
+
+This crate was born of a great bit of Rust syntax goodness. 
+
+```rust
+#[rustfmt::skip]
+assert_eq!(plot_bits::<u8, 8>((0..=7).map(|i| (i, i))), [
+    0b10000000, // #.......
+    0b01000000, // .#......
+    0b00100000, // ..#.....
+    0b00010000, // ...#....
+    0b00001000, // ....#...
+    0b00000100, // .....#..
+    0b00000010, // ......#.
+    0b00000001, // .......#
+]);
+
+#[rustfmt::skip]
+assert_hexmap_eq!([0x1F00u16], [0x1F00]);
+```
+
 Packed grid literals for tests. Rows are integers: `0b` for 1-bit cells, `0x`
 for 4-bit cells. The high bit or nibble is `x = 0`. Width is the row type:
 `u8` is 8 cells, `u16` is 16, and so on.
