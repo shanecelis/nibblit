@@ -1,34 +1,18 @@
 #![doc = include_str!("../README.md")]
 
 mod bitmap;
+mod diff;
 mod hexmap;
 mod row;
 
-pub use bitmap::{bitmap_diff, plot_bits};
-pub use hexmap::{hexmap_diff, plot_hex};
 #[doc(hidden)]
 pub use bitmap::{assert_bitmaps, assert_bitmaps_msg};
+pub use bitmap::{bitmap_diff, plot_bits};
+pub use diff::{Diff, DiffStats};
 #[doc(hidden)]
 pub use hexmap::{assert_hexmaps, assert_hexmaps_msg};
+pub use hexmap::{hexmap_diff, plot_hex};
 pub use row::Packed;
-
-/// A cell-wise mismatch overlay.
-///
-/// `missing` / `extra` are `(x, y, cell)`. Bitmaps store `1` in `cell`; hexmaps
-/// store the nibble. `changed` is hexmaps only: `(x, y, actual, expected)`.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Diff {
-    pub overlay: String,
-    pub missing: Vec<(u32, u32, u8)>,
-    pub extra: Vec<(u32, u32, u8)>,
-    pub changed: Vec<(u32, u32, u8, u8)>,
-}
-
-impl core::fmt::Display for Diff {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(&self.overlay)
-    }
-}
 
 /// Compare packed `0b` bitmap rows. Panics with an overlay on mismatch.
 ///
@@ -59,30 +43,4 @@ macro_rules! assert_hexmap_eq {
     ($actual:expr, $expected:expr, $($arg:tt)+) => {
         $crate::assert_hexmaps_msg($actual, $expected, ::core::format_args!($($arg)+))
     };
-}
-
-pub(crate) fn fmt_points(points: &[(u32, u32, u8)]) -> String {
-    if points.is_empty() {
-        return "none".into();
-    }
-    points
-        .iter()
-        .map(|(x, y, _)| format!("({x}, {y})"))
-        .collect::<Vec<_>>()
-        .join(", ")
-}
-
-pub(crate) fn fmt_cells(cells: &[(u32, u32, u8)]) -> String {
-    if cells.is_empty() {
-        return "none".into();
-    }
-    cells
-        .iter()
-        .map(|(x, y, n)| format!("({x}, {y}) {n:X}"))
-        .collect::<Vec<_>>()
-        .join(", ")
-}
-
-pub(crate) fn label_width(rows: usize) -> usize {
-    rows.saturating_sub(1).to_string().len().max(1)
 }
