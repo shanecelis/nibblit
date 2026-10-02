@@ -4,7 +4,7 @@ fn main() {
     let err = std::panic::catch_unwind(|| {
         #[rustfmt::skip]
         assert_bitmap_eq!(
-            plot_bits::<u8, 8>((1..=6).map(|i| (i, i)).chain([(7, 0), (0, 7)])),
+            plot_bits::<u8, 8>((1..=6).map(|i| (i, i)).chain([(0, 7)])),
             [
                 0b10000000, // #.......
                 0b01000000, // .#......

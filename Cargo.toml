@@ -1,13 +1,14 @@
 [package]
 name = "bitlit"
-version = "0.1.0"
+description = "Checks equality for bitmap literals and hexmap literals"
 authors = ["Shane Celis <shane.celis@gmail.com>"]
-license = "MIT"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
 edition = "2021"
+keywords = ["bitmap", "literal", "hex", "test", "assert"]
 readme = "README.md"
-description = "Packed 0b bitmap and 0x hexmap literals for tests: equality, diffs, and assertions."
 documentation = "https://docs.rs/bitlit"
-keywords = ["bitmap", "hex", "test", "assert", "grid"]
+repository = "https://github.com/shanecelis/bitlit"
 categories = ["development-tools::testing"]
 
 [package.metadata.docs.rs]
