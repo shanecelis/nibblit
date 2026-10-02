@@ -6,7 +6,7 @@ use core::fmt::{self, Write};
 /// A mismatch between two packed grids of height `H`.
 ///
 /// Left is the first grid, right is the second. Formatting writes the overlay;
-/// [`Self::stats`] reports the cells behind it.
+/// [`Self::conflicts`] reports the cells behind it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Diff<'a, T: Packed, const H: usize> {
     left: &'a [T; H],
@@ -19,9 +19,12 @@ pub struct Diff<'a, T: Packed, const H: usize> {
 /// `missing` / `extra` are `(x, y, cell)`. Bitmaps store `1` in `cell`; hexmaps
 /// store the nibble. `changed` is hexmaps only: `(x, y, left, right)`.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct DiffStats {
+pub struct Conflicts {
+    /// Present on the left but not on the right.
     pub missing: Vec<(u32, u32, u8)>,
+    /// Present on the right but not on the left.
     pub extra: Vec<(u32, u32, u8)>,
+    /// Present on both but different.
     pub changed: Vec<(u32, u32, u8, u8)>,
 }
 
@@ -84,15 +87,15 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
     }
 
     /// Cells behind the overlay.
-    pub fn stats(&self) -> DiffStats {
-        let mut stats = DiffStats::default();
+    pub fn conflicts(&self) -> Conflicts {
+        let mut conflicts = Conflicts::default();
         let width = self.width();
         for y in 0..H {
             for x in 0..width {
-                stats.record(x, y as u32, self.class_at(x, y));
+                conflicts.record(x, y as u32, self.class_at(x, y));
             }
         }
-        stats
+        conflicts
     }
 
     fn width(&self) -> u32 {
@@ -136,30 +139,30 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
         }
     }
 
-    fn write_footer(&self, f: &mut fmt::Formatter<'_>, stats: &DiffStats) -> fmt::Result {
+    fn write_footer(&self, f: &mut fmt::Formatter<'_>, conflicts: &Conflicts) -> fmt::Result {
         match self.mode {
             Mode::Bitmap => {
                 f.write_str("missing: ")?;
-                write_points(f, &stats.missing)?;
+                write_points(f, &conflicts.missing)?;
                 f.write_char('\n')?;
                 f.write_str("extra: ")?;
-                write_points(f, &stats.extra)
+                write_points(f, &conflicts.extra)
             }
             Mode::Hexmap => {
                 f.write_str("missing: ")?;
-                write_cells(f, &stats.missing)?;
+                write_cells(f, &conflicts.missing)?;
                 f.write_char('\n')?;
                 f.write_str("extra: ")?;
-                write_cells(f, &stats.extra)?;
+                write_cells(f, &conflicts.extra)?;
                 f.write_char('\n')?;
                 f.write_str("changed: ")?;
-                write_changed(f, &stats.changed)
+                write_changed(f, &conflicts.changed)
             }
         }
     }
 }
 
-impl DiffStats {
+impl Conflicts {
     fn record(&mut self, x: u32, y: u32, class: Class) {
         match class {
             Class::Same(_) => {}
@@ -172,7 +175,7 @@ impl DiffStats {
 
 impl<T: Packed, const H: usize> fmt::Display for Diff<'_, T, H> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut stats = DiffStats::default();
+        let mut conflicts = Conflicts::default();
         let label = label_width(H);
         let width = self.width();
         for y in 0..H {
@@ -180,11 +183,11 @@ impl<T: Packed, const H: usize> fmt::Display for Diff<'_, T, H> {
             for x in 0..width {
                 let class = self.class_at(x, y);
                 f.write_char(class.glyph())?;
-                stats.record(x, y as u32, class);
+                conflicts.record(x, y as u32, class);
             }
             f.write_char('\n')?;
         }
-        self.write_footer(f, &stats)
+        self.write_footer(f, &conflicts)
     }
 }
 

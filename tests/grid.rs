@@ -110,10 +110,10 @@ fn hexmap_mismatch_marks_missing_extra_changed() {
         msg.contains("missing: (0, 0) B") && msg.contains("extra: (2, 0) C"),
         "missing/extra should name the nibble: {msg}"
     );
-    let stats = diff.stats();
-    assert_eq!(stats.missing, [(0, 0, 0xB)]);
-    assert_eq!(stats.extra, [(2, 0, 0xC)]);
-    assert_eq!(stats.changed, [(1, 0, 0xA, 0xF)]);
+    let conflicts = diff.conflicts();
+    assert_eq!(conflicts.missing, [(0, 0, 0xB)]);
+    assert_eq!(conflicts.extra, [(2, 0, 0xC)]);
+    assert_eq!(conflicts.changed, [(1, 0, 0xA, 0xF)]);
 }
 
 fn panic_message(err: &Box<dyn std::any::Any + Send>) -> String {
