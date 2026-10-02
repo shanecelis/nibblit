@@ -1,4 +1,4 @@
-use bitlit::{assert_bitmap_eq, assert_hexmap_eq, plot_bits, plot_hex, Diff};
+use bitlit::{assert_bitmap_eq, assert_hexmap_eq, plot_bits, plot_hex, Cell, Conflict, Diff};
 
 #[test]
 fn equal_grids_pass() {
@@ -110,10 +110,29 @@ fn hexmap_mismatch_marks_missing_extra_changed() {
         msg.contains("missing: (0, 0) B") && msg.contains("extra: (2, 0) C"),
         "missing/extra should name the nibble: {msg}"
     );
-    let conflicts = diff.conflicts();
-    assert_eq!(conflicts.missing, [(0, 0, 0xB)]);
-    assert_eq!(conflicts.extra, [(2, 0, 0xC)]);
-    assert_eq!(conflicts.changed, [(1, 0, 0xA, 0xF)]);
+    assert_eq!(
+        diff.conflicts().collect::<Vec<_>>(),
+        [
+            Cell {
+                x: 0,
+                y: 0,
+                conflict: Conflict::Right(0xB),
+            },
+            Cell {
+                x: 1,
+                y: 0,
+                conflict: Conflict::Changed {
+                    left: 0xA,
+                    right: 0xF,
+                },
+            },
+            Cell {
+                x: 2,
+                y: 0,
+                conflict: Conflict::Left(0xC),
+            },
+        ]
+    );
 }
 
 fn panic_message(err: &Box<dyn std::any::Any + Send>) -> String {

@@ -14,43 +14,32 @@ pub struct Diff<'a, T: Packed, const H: usize> {
     mode: Mode,
 }
 
-/// Cells that differ between the two grids.
+/// How a cell differs between the two grids.
 ///
-/// `missing` / `extra` are `(x, y, cell)`. Bitmaps store `1` in `cell`; hexmaps
-/// store the nibble. `changed` is hexmaps only: `(x, y, left, right)`.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Conflicts {
-    /// Present on the left but not on the right.
-    pub missing: Vec<(u32, u32, u8)>,
-    /// Present on the right but not on the left.
-    pub extra: Vec<(u32, u32, u8)>,
-    /// Present on both but different.
-    pub changed: Vec<(u32, u32, u8, u8)>,
+/// The `u8` is `1` for a bitmap and the nibble for a hexmap. [`Conflict::Changed`]
+/// is hexmaps only.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Conflict {
+    /// On the left; absent from the right.
+    Left(u8),
+    /// On the right; absent from the left.
+    Right(u8),
+    /// Set on both sides, with different values.
+    Changed { left: u8, right: u8 },
+}
+
+/// A differing cell and where it sits.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Cell {
+    pub x: u32,
+    pub y: u32,
+    pub conflict: Conflict,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Mode {
     Bitmap,
     Hexmap,
-}
-
-#[derive(Clone, Copy)]
-enum Class {
-    Same(char),
-    Missing(u8),
-    Extra(u8),
-    Changed { left: u8, right: u8 },
-}
-
-impl Class {
-    fn glyph(self) -> char {
-        match self {
-            Class::Same(glyph) => glyph,
-            Class::Missing(_) => '-',
-            Class::Extra(_) => '+',
-            Class::Changed { .. } => '*',
-        }
-    }
 }
 
 impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
@@ -86,16 +75,18 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
         }
     }
 
-    /// Cells behind the overlay.
-    pub fn conflicts(&self) -> Conflicts {
-        let mut conflicts = Conflicts::default();
+    /// Cells that differ, in row-major order.
+    pub fn conflicts(&self) -> impl Iterator<Item = Cell> + '_ {
         let width = self.width();
-        for y in 0..H {
-            for x in 0..width {
-                conflicts.record(x, y as u32, self.class_at(x, y));
-            }
-        }
-        conflicts
+        (0..H).flat_map(move |y| {
+            (0..width).filter_map(move |x| {
+                self.classify(x, y).1.map(|conflict| Cell {
+                    x,
+                    y: y as u32,
+                    conflict,
+                })
+            })
+        })
     }
 
     fn width(&self) -> u32 {
@@ -105,7 +96,7 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
         }
     }
 
-    fn class_at(&self, x: u32, y: usize) -> Class {
+    fn classify(&self, x: u32, y: usize) -> (char, Option<Conflict>) {
         let left_bits = self.left[y].bits();
         let right_bits = self.right[y].bits();
         match self.mode {
@@ -114,10 +105,10 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
                 let left = (left_bits >> shift) & 1 != 0;
                 let right = (right_bits >> shift) & 1 != 0;
                 match (left, right) {
-                    (true, true) => Class::Same('#'),
-                    (false, false) => Class::Same('.'),
-                    (false, true) => Class::Missing(1),
-                    (true, false) => Class::Extra(1),
+                    (true, true) => ('#', None),
+                    (false, false) => ('.', None),
+                    (false, true) => ('-', Some(Conflict::Right(1))),
+                    (true, false) => ('+', Some(Conflict::Left(1))),
                 }
             }
             Mode::Hexmap => {
@@ -125,99 +116,109 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
                 let left = ((left_bits >> shift) & 0xf) as u8;
                 let right = ((right_bits >> shift) & 0xf) as u8;
                 match (left, right) {
-                    (0, 0) => Class::Same('.'),
-                    (left, right) if left == right => Class::Same(
+                    (0, 0) => ('.', None),
+                    (left, right) if left == right => (
                         char::from_digit(u32::from(left), 16)
                             .unwrap()
                             .to_ascii_uppercase(),
+                        None,
                     ),
-                    (0, right) => Class::Missing(right),
-                    (left, 0) => Class::Extra(left),
-                    (left, right) => Class::Changed { left, right },
+                    (0, value) => ('-', Some(Conflict::Right(value))),
+                    (value, 0) => ('+', Some(Conflict::Left(value))),
+                    (left, right) => ('*', Some(Conflict::Changed { left, right })),
                 }
             }
         }
     }
 
-    fn write_footer(&self, f: &mut fmt::Formatter<'_>, conflicts: &Conflicts) -> fmt::Result {
+    fn write_footer(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.mode {
             Mode::Bitmap => {
                 f.write_str("missing: ")?;
-                write_points(f, &conflicts.missing)?;
+                write_separated(
+                    f,
+                    self.conflicts().filter_map(|item| match item.conflict {
+                        Conflict::Right(_) => Some((item.x, item.y)),
+                        _ => None,
+                    }),
+                    |f, (x, y)| write!(f, "({x}, {y})"),
+                )?;
                 f.write_char('\n')?;
                 f.write_str("extra: ")?;
-                write_points(f, &conflicts.extra)
+                write_separated(
+                    f,
+                    self.conflicts().filter_map(|item| match item.conflict {
+                        Conflict::Left(_) => Some((item.x, item.y)),
+                        _ => None,
+                    }),
+                    |f, (x, y)| write!(f, "({x}, {y})"),
+                )
             }
             Mode::Hexmap => {
                 f.write_str("missing: ")?;
-                write_cells(f, &conflicts.missing)?;
+                write_separated(
+                    f,
+                    self.conflicts().filter_map(|item| match item.conflict {
+                        Conflict::Right(value) => Some((item.x, item.y, value)),
+                        _ => None,
+                    }),
+                    |f, (x, y, cell)| write!(f, "({x}, {y}) {cell:X}"),
+                )?;
                 f.write_char('\n')?;
                 f.write_str("extra: ")?;
-                write_cells(f, &conflicts.extra)?;
+                write_separated(
+                    f,
+                    self.conflicts().filter_map(|item| match item.conflict {
+                        Conflict::Left(value) => Some((item.x, item.y, value)),
+                        _ => None,
+                    }),
+                    |f, (x, y, cell)| write!(f, "({x}, {y}) {cell:X}"),
+                )?;
                 f.write_char('\n')?;
                 f.write_str("changed: ")?;
-                write_changed(f, &conflicts.changed)
+                write_separated(
+                    f,
+                    self.conflicts().filter_map(|item| match item.conflict {
+                        Conflict::Changed { left, right } => Some((item.x, item.y, left, right)),
+                        _ => None,
+                    }),
+                    |f, (x, y, left, right)| write!(f, "({x}, {y}) {left:X}≠{right:X}"),
+                )
             }
-        }
-    }
-}
-
-impl Conflicts {
-    fn record(&mut self, x: u32, y: u32, class: Class) {
-        match class {
-            Class::Same(_) => {}
-            Class::Missing(cell) => self.missing.push((x, y, cell)),
-            Class::Extra(cell) => self.extra.push((x, y, cell)),
-            Class::Changed { left, right } => self.changed.push((x, y, left, right)),
         }
     }
 }
 
 impl<T: Packed, const H: usize> fmt::Display for Diff<'_, T, H> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut conflicts = Conflicts::default();
         let label = label_width(H);
         let width = self.width();
         for y in 0..H {
             write!(f, "{y:label$} | ")?;
             for x in 0..width {
-                let class = self.class_at(x, y);
-                f.write_char(class.glyph())?;
-                conflicts.record(x, y as u32, class);
+                f.write_char(self.classify(x, y).0)?;
             }
             f.write_char('\n')?;
         }
-        self.write_footer(f, &conflicts)
+        self.write_footer(f)
     }
-}
-
-fn write_points(f: &mut fmt::Formatter<'_>, points: &[(u32, u32, u8)]) -> fmt::Result {
-    write_separated(f, points, |f, (x, y, _)| write!(f, "({x}, {y})"))
-}
-
-fn write_cells(f: &mut fmt::Formatter<'_>, cells: &[(u32, u32, u8)]) -> fmt::Result {
-    write_separated(f, cells, |f, (x, y, n)| write!(f, "({x}, {y}) {n:X}"))
-}
-
-fn write_changed(f: &mut fmt::Formatter<'_>, cells: &[(u32, u32, u8, u8)]) -> fmt::Result {
-    write_separated(f, cells, |f, (x, y, left, right)| {
-        write!(f, "({x}, {y}) {left:X}≠{right:X}")
-    })
 }
 
 fn write_separated<T>(
     f: &mut fmt::Formatter<'_>,
-    items: &[T],
-    mut write_item: impl FnMut(&mut fmt::Formatter<'_>, &T) -> fmt::Result,
+    items: impl Iterator<Item = T>,
+    mut write_item: impl FnMut(&mut fmt::Formatter<'_>, T) -> fmt::Result,
 ) -> fmt::Result {
-    if items.is_empty() {
-        return f.write_str("none");
-    }
-    for (i, item) in items.iter().enumerate() {
-        if i > 0 {
+    let mut wrote = false;
+    for item in items {
+        if wrote {
             f.write_str(", ")?;
         }
         write_item(f, item)?;
+        wrote = true;
+    }
+    if !wrote {
+        f.write_str("none")?;
     }
     Ok(())
 }

@@ -8,7 +8,7 @@ mod row;
 pub use bitmap::plot_bits;
 #[doc(hidden)]
 pub use bitmap::{assert_bitmaps, assert_bitmaps_msg};
-pub use diff::{Conflicts, Diff};
+pub use diff::{Cell, Conflict, Diff};
 pub use hexmap::plot_hex;
 #[doc(hidden)]
 pub use hexmap::{assert_hexmaps, assert_hexmaps_msg};
