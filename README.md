@@ -1,6 +1,6 @@
 # bitlit
 
-This crate checks equality bitmap literals and hexmap literals. 
+This crate checks equality for bitmap literals and hexmap literals.
 
 ## Motivation
 
@@ -11,13 +11,13 @@ visually even if its only a bitmap.
 
 This crate was born out of a great bit (pun intended) of Rust syntax. Using bit
 literal syntax `0b01`, specifying an inline bitmap is easy. Since `[]`
-implements `Eq`, one can do the following without any crates:
+implements `Eq`, one can do the following without any crate:
 
 ```rust
 # use bitlit::plot_bits;
 
 #[rustfmt::skip]
-assert_eq!(plot_bits::<u8, 8>((0..=7).map(|i| (i, i))), [
+assert_eq!(plot_bits::<u8, 8>((1..=7).map(|i| (i, i))), [
     0b10000000, // #.......
     0b01000000, // .#......
     0b00100000, // ..#.....
@@ -27,32 +27,25 @@ assert_eq!(plot_bits::<u8, 8>((0..=7).map(|i| (i, i))), [
     0b00000010, // ......#.
     0b00000001, // .......#
 ]);
+
+``` 
+## The Problem
+
+The problem comes when the assertion fails, and one has to decipher how the
+bit literals are represented in decimal.
+
+```text
+thread 'main' (6329365) panicked at examples/bare.rs:5:5:
+assertion `left == right` failed
+  left: [0, 64, 32, 16, 8, 4, 2, 1]
+ right: [128, 64, 32, 16, 8, 4, 2, 1]
 ```
 
 ## The Advantage 
 
-The advantage this crate offers is what it prints when things don't match.
+The beauty of this crate is what if offers when things do not match.
 
-```rust
-# use bitlit::{assert_bitmap_eq, plot_bits};
-
-#[rustfmt::skip]
-assert_bitmap_eq!(plot_bits::<u8, 8>((0..=7).map(|i| (i, i))), [
-    0b10000000, // #.......
-    0b01000000, // .#......
-    0b00100000, // ..#.....
-    0b00010000, // ...#....
-    0b00001000, // ....#...
-    0b00000100, // .....#..
-    0b00000010, // ......#.
-    0b00000001, // .......#
-]);
-```
-
-Same line, but the plot omits `(0, 0)` and `(7, 7)` and adds the other two corners.
-The assertion panics with an overlay (`#` match, `.` empty, `-` missing, `+` extra):
-
-```rust,ignore
+```rust,should_panic
 use bitlit::{assert_bitmap_eq, plot_bits};
 
 #[rustfmt::skip]
@@ -70,6 +63,7 @@ assert_bitmap_eq!(
     ],
 );
 ```
+An ASCII representation of the bitmap is shown.
 
 ```text
 bitmap mismatch (# match  . empty  - missing  + extra)
@@ -85,23 +79,18 @@ missing: (0, 0), (7, 7)
 extra: (7, 0), (0, 7)
 ```
 
-Bitmap overlay: `#` match, `.` empty, `-` missing, `+` extra. Runtime equality is
-`==`. `Diff::bitmap` / `Diff::hexmap` return a `Diff` that formats as the overlay, without panicking.
-`assert_bitmap_eq!` / `assert_hexmap_eq!` take an optional format string, same as
-`assert_eq!`.
-
 ## Hexmap
 
-Same diagonal, each cell a nibble. `u32` is eight nibbles wide. Values count by
-two so `A`–`F` show up:
+Bitmaps suffice in many cases but when one needs more than 1 bit, hexadecimal
+offers 16 values per cell in each half byte or nybble [0, F].
 
-```rust
-use bitlit::{assert_hexmap_eq, plot_hex};
+```rust,should_panic
+# use bitlit::plot_hex;
 
 #[rustfmt::skip]
-assert_hexmap_eq!(plot_hex::<u32, 8>((0..=7).map(|i| (i, i, (2 * i + 1) as u8))), [
+assert_eq!(plot_hex::<u32, 8>((0..=7).map(|i| (i, i, (2 * i + 1) as u8))), [
     0x10000000, // 1.......
-    0x03000000, // .3......
+    0x04000000, // .4......
     0x00500000, // ..5.....
     0x00070000, // ...7....
     0x00009000, // ....9...
@@ -111,12 +100,18 @@ assert_hexmap_eq!(plot_hex::<u32, 8>((0..=7).map(|i| (i, i, (2 * i + 1) as u8)))
 ]);
 ```
 
-Same line, but the plot omits `(0, 0)` and `(7, 7)` and adds the other two corners.
-The assertion panics with an overlay (`.` empty, `1`–`F` match, `-` missing, `+`
-extra, `*` changed):
+While literal bitmaps can be deciphered without a crate such as this, I believe
+trying to decipher a hexmap is folly. Not convinced? Try to find the difference
+with the assertion failure below.
 
-```rust,ignore
-use bitlit::{assert_hexmap_eq, plot_hex};
+``` text
+assertion `left == right` failed
+  left: [268435456, 50331648, 5242880, 458752, 36864, 2816, 208, 15]
+ right: [268435456, 67108864, 5242880, 458752, 36864, 2816, 208, 15]
+```
+
+```rust,should_panic
+#use bitlit::{assert_hexmap_eq, plot_hex};
 
 #[rustfmt::skip]
 assert_hexmap_eq!(

@@ -22,5 +22,4 @@ fn main() {
         );
     })
     .expect_err("should mismatch");
-    println!("{}", err.downcast_ref::<String>().unwrap());
 }
