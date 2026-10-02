@@ -1,6 +1,7 @@
 //! Integer row types whose width is `size_of::<T>() * 8`.
 
 /// A packed row. Width is `Self::BITS` cells (1-bit) or nibbles (`BITS / 4`).
+#[doc(hidden)]
 pub trait Packed: Copy + Eq {
     const BITS: u32;
 

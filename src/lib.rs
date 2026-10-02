@@ -12,6 +12,7 @@ pub use diff::{Cell, Conflict, Diff};
 pub use hexmap::plot_hex;
 #[doc(hidden)]
 pub use hexmap::{assert_hexmaps, assert_hexmaps_msg};
+#[doc(hidden)]
 pub use row::Packed;
 
 /// Compare packed `0b` bitmap rows. Panics with an overlay on mismatch.
