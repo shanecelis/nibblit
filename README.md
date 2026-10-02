@@ -1,16 +1,18 @@
 # bitlit
 
-This crate checks equality for bitmap literals and hexmap literals.
+Check equality for bitmap literals and hexmap literals.
 
 ## Motivation
 
-When an algorithm produces visual results, its best to verify the results
-visually even if its only a bitmap.
+> If visual, why not visual test?
+
+When an algorithm produces visual results, it makes sense to verify the results
+visually.
 
 ## The Trick
 
 This crate was born out of a great bit (pun intended) of Rust syntax. Using bit
-literal syntax `0b01`, specifying an inline bitmap is easy. Since `[]`
+literal syntax `0b01010101`, specifying an inline bitmap is easy. Since `[]`
 implements `Eq`, one can do the following without any crate:
 
 ```rust,should_panic
@@ -43,7 +45,7 @@ assertion `left == right` failed
 
 The beauty of this crate is what if offers when things do not match: an ASCII
 representation of the bitmap along with details of where the bits were or
-weren't.
+were not.
 
 ```text
 bitmap mismatch (# match  . empty  - right only  + left only)
@@ -61,8 +63,8 @@ right only: (0, 0), (7, 7)
 
 # Hexmap
 
-Bitmaps suffice in many cases but when one needs more than 1 bit, hexadecimal
-offers 16 values per cell in each half byte or nybble [0, F].
+Bitmaps suffice in many cases but when one needs more than one bit, hexadecimal
+offers 16 values per cell in each half byte or nybble `[0, F]`.
 
 ```rust,should_panic
 # use bitlit::plot_hex;
@@ -90,7 +92,7 @@ assertion `left == right` failed
 ```
 
 No shame in not being a hexadecimally gifted machine. Try to determine the
-difference using bitlit below.
+difference below. Easy! even for humans.
 
 ```text
 hexmap mismatch (. empty  1-F match  - right only  + left only  * changed)
@@ -112,7 +114,8 @@ changed: (1, 1) 3≠2
 ### Can bitmaps be wider than 8 bits?
 
 Yes, bitmaps can be 8, 16, 32, or 64 bits wide. Just use the corresponding data
-type u8, u16, u32, or u64.
+type u8, u16, u32, or u64. And hexmaps can be 2, 4, 8, or 16 nybbles wide
+respectively.
 
 ## License
 
