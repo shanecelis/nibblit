@@ -66,7 +66,7 @@ assert_bitmap_eq!(
 An ASCII representation of the bitmap is shown.
 
 ```text
-bitmap mismatch (# match  . empty  - missing  + extra)
+bitmap mismatch (# match  . empty  - right only  + left only)
 0 | -......+
 1 | .#......
 2 | ..#.....
@@ -75,8 +75,8 @@ bitmap mismatch (# match  . empty  - missing  + extra)
 5 | .....#..
 6 | ......#.
 7 | +......-
-missing: (0, 0), (7, 7)
-extra: (7, 0), (0, 7)
+left only: (7, 0), (0, 7)
+right only: (0, 0), (7, 7)
 ```
 
 ## Hexmap
@@ -134,7 +134,7 @@ assert_hexmap_eq!(
 ```
 
 ```text
-hexmap mismatch (. empty  1-F match  - missing  + extra  * changed)
+hexmap mismatch (. empty  1-F match  - right only  + left only  * changed)
 0 | -......+
 1 | .3......
 2 | ..5.....
@@ -143,8 +143,8 @@ hexmap mismatch (. empty  1-F match  - missing  + extra  * changed)
 5 | .....B..
 6 | ......D.
 7 | +......-
-missing: (0, 0) 1, (7, 7) F
-extra: (7, 0) 1, (0, 7) F
+left only: (7, 0) 1, (0, 7) F
+right only: (0, 0) 1, (7, 7) F
 changed: none
 ```
 

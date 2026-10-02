@@ -24,7 +24,7 @@ fn plot_bits_packs_msb_left() {
 }
 
 #[test]
-fn mismatch_marks_missing_and_extra() {
+fn mismatch_marks_left_only_and_right_only() {
     let err = std::panic::catch_unwind(|| {
         #[rustfmt::skip]
         assert_bitmap_eq!(
@@ -41,24 +41,24 @@ fn mismatch_marks_missing_and_extra() {
     .expect_err("grids differ");
     let msg = panic_message(&err);
     assert!(
-        msg.contains("# match") && msg.contains("- missing") && msg.contains("+ extra"),
-        "missing legend: {msg}"
+        msg.contains("# match") && msg.contains("- right only") && msg.contains("+ left only"),
+        "legend: {msg}"
     );
     assert!(
         msg.contains("0 | -+......"),
-        "row 0 should be `-+......` (missing then extra): {msg}"
+        "row 0 should be `-+......` (right only, then left only): {msg}"
     );
     assert!(
         msg.contains("1 | ..#....."),
         "row 1 should stay a match: {msg}"
     );
     assert!(
-        msg.contains("missing: (0, 0)"),
-        "missing list should name (0, 0): {msg}"
+        msg.contains("right only: (0, 0)"),
+        "right-only list should name (0, 0): {msg}"
     );
     assert!(
-        msg.contains("extra: (1, 0)"),
-        "extra list should name (1, 0): {msg}"
+        msg.contains("left only: (1, 0)"),
+        "left-only list should name (1, 0): {msg}"
     );
 }
 
@@ -97,18 +97,18 @@ fn plot_hex_packs_high_nibble_left() {
 }
 
 #[test]
-fn hexmap_mismatch_marks_missing_extra_changed() {
+fn hexmap_mismatch_marks_left_right_changed() {
     let left = [0x0AC0u16];
     let right = [0xBF00u16];
     let diff = Diff::hexmap(&left, &right).expect("grids differ");
     let msg = diff.to_string();
     assert!(
         msg.contains("0 | -*+."),
-        "row should be missing, changed, extra, then empty: {msg}"
+        "row should be right only, changed, left only, then empty: {msg}"
     );
     assert!(
-        msg.contains("missing: (0, 0) B") && msg.contains("extra: (2, 0) C"),
-        "missing/extra should name the nibble: {msg}"
+        msg.contains("right only: (0, 0) B") && msg.contains("left only: (2, 0) C"),
+        "one-sided cells should name the nibble: {msg}"
     );
     assert_eq!(
         diff.conflicts().collect::<Vec<_>>(),

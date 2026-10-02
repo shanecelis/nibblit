@@ -27,7 +27,7 @@ pub fn plot_hex<T: Packed, const H: usize>(
 #[track_caller]
 pub fn assert_hexmaps<T: Packed, const H: usize>(left: &[T; H], right: &[T; H]) {
     if let Some(diff) = Diff::hexmap(left, right) {
-        panic!("hexmap mismatch (. empty  1-F match  - missing  + extra  * changed)\n{diff}");
+        panic!("hexmap mismatch (. empty  1-F match  - right only  + left only  * changed)\n{diff}");
     }
 }
 
@@ -41,7 +41,7 @@ pub fn assert_hexmaps_msg<T: Packed, const H: usize>(
 ) {
     if let Some(diff) = Diff::hexmap(left, right) {
         panic!(
-            "hexmap mismatch (. empty  1-F match  - missing  + extra  * changed): {msg}\n{diff}"
+            "hexmap mismatch (. empty  1-F match  - right only  + left only  * changed): {msg}\n{diff}"
         );
     }
 }

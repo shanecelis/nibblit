@@ -46,7 +46,7 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
     /// Bitmap mismatch, or `None` when the grids match.
     ///
     /// Borrows both grids. Formatting writes the overlay (`#` match, `.` empty,
-    /// `-` missing, `+` extra).
+    /// `-` right only, `+` left only).
     pub fn bitmap(left: &'a [T; H], right: &'a [T; H]) -> Option<Self> {
         if left == right {
             None
@@ -62,7 +62,7 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
     /// Hexmap mismatch, or `None` when the grids match.
     ///
     /// Borrows both grids. Formatting writes the overlay (`.` empty, `1`–`F`
-    /// match, `-` missing, `+` extra, `*` changed).
+    /// match, `-` right only, `+` left only, `*` changed).
     pub fn hexmap(left: &'a [T; H], right: &'a [T; H]) -> Option<Self> {
         if left == right {
             None
@@ -134,17 +134,7 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
     fn write_footer(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.mode {
             Mode::Bitmap => {
-                f.write_str("missing: ")?;
-                write_separated(
-                    f,
-                    self.conflicts().filter_map(|item| match item.conflict {
-                        Conflict::Right(_) => Some((item.x, item.y)),
-                        _ => None,
-                    }),
-                    |f, (x, y)| write!(f, "({x}, {y})"),
-                )?;
-                f.write_char('\n')?;
-                f.write_str("extra: ")?;
+                f.write_str("left only: ")?;
                 write_separated(
                     f,
                     self.conflicts().filter_map(|item| match item.conflict {
@@ -152,24 +142,34 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
                         _ => None,
                     }),
                     |f, (x, y)| write!(f, "({x}, {y})"),
-                )
-            }
-            Mode::Hexmap => {
-                f.write_str("missing: ")?;
+                )?;
+                f.write_char('\n')?;
+                f.write_str("right only: ")?;
                 write_separated(
                     f,
                     self.conflicts().filter_map(|item| match item.conflict {
-                        Conflict::Right(value) => Some((item.x, item.y, value)),
+                        Conflict::Right(_) => Some((item.x, item.y)),
+                        _ => None,
+                    }),
+                    |f, (x, y)| write!(f, "({x}, {y})"),
+                )
+            }
+            Mode::Hexmap => {
+                f.write_str("left only: ")?;
+                write_separated(
+                    f,
+                    self.conflicts().filter_map(|item| match item.conflict {
+                        Conflict::Left(value) => Some((item.x, item.y, value)),
                         _ => None,
                     }),
                     |f, (x, y, cell)| write!(f, "({x}, {y}) {cell:X}"),
                 )?;
                 f.write_char('\n')?;
-                f.write_str("extra: ")?;
+                f.write_str("right only: ")?;
                 write_separated(
                     f,
                     self.conflicts().filter_map(|item| match item.conflict {
-                        Conflict::Left(value) => Some((item.x, item.y, value)),
+                        Conflict::Right(value) => Some((item.x, item.y, value)),
                         _ => None,
                     }),
                     |f, (x, y, cell)| write!(f, "({x}, {y}) {cell:X}"),
