@@ -106,8 +106,12 @@ fn hexmap_mismatch_marks_missing_extra_changed() {
         msg.contains("0 | -*+."),
         "row should be missing, changed, extra, then empty: {msg}"
     );
-    assert_eq!(diff.missing, [(0, 0)]);
-    assert_eq!(diff.extra, [(2, 0)]);
+    assert!(
+        msg.contains("missing: (0, 0) B") && msg.contains("extra: (2, 0) C"),
+        "missing/extra should name the nibble: {msg}"
+    );
+    assert_eq!(diff.missing, [(0, 0, 0xB)]);
+    assert_eq!(diff.extra, [(2, 0, 0xC)]);
     assert_eq!(diff.changed, [(1, 0, 0xA, 0xF)]);
 }
 

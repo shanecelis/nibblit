@@ -1,6 +1,6 @@
 //! 4-bit cells packed into integer rows (`0x…`). High nibble = x = 0.
 
-use crate::{fmt_points, label_width, Diff, Packed};
+use crate::{fmt_cells, label_width, Diff, Packed};
 use std::fmt::Write;
 
 /// Pack `(x, y, nibble)` cells into `H` rows of `T::BITS / 4` nibbles.
@@ -75,11 +75,11 @@ fn overlay<T: Packed>(actual: &[T], expected: &[T]) -> Diff {
                 (0, 0) => '.',
                 (e, a) if e == a => char::from_digit(e as u32, 16).unwrap().to_ascii_uppercase(),
                 (_, 0) => {
-                    missing.push((x, y as u32));
+                    missing.push((x, y as u32, e));
                     '-'
                 }
                 (0, _) => {
-                    extra.push((x, y as u32));
+                    extra.push((x, y as u32, a));
                     '+'
                 }
                 _ => {
@@ -90,8 +90,8 @@ fn overlay<T: Packed>(actual: &[T], expected: &[T]) -> Diff {
         }
         out.push('\n');
     }
-    let _ = writeln!(out, "missing: {}", fmt_points(&missing));
-    let _ = writeln!(out, "extra: {}", fmt_points(&extra));
+    let _ = writeln!(out, "missing: {}", fmt_cells(&missing));
+    let _ = writeln!(out, "extra: {}", fmt_cells(&extra));
     let _ = write!(out, "changed: {}", fmt_changed(&changed));
     Diff {
         overlay: out,

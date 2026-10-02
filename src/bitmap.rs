@@ -69,11 +69,11 @@ fn overlay<T: Packed>(actual: &[T], expected: &[T]) -> Diff {
                 (true, true) => '#',
                 (false, false) => '.',
                 (true, false) => {
-                    missing.push((x, y as u32));
+                    missing.push((x, y as u32, 1));
                     '-'
                 }
                 (false, true) => {
-                    extra.push((x, y as u32));
+                    extra.push((x, y as u32, 1));
                     '+'
                 }
             });

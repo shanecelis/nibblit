@@ -148,8 +148,8 @@ hexmap mismatch (. empty  1-F match  - missing  + extra  * changed)
 5 | .....B..
 6 | ......D.
 7 | +......-
-missing: (0, 0), (7, 7)
-extra: (7, 0), (0, 7)
+missing: (0, 0) 1, (7, 7) F
+extra: (7, 0) 1, (0, 7) F
 changed: none
 ```
 

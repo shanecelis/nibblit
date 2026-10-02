@@ -14,13 +14,13 @@ pub use row::Packed;
 
 /// A cell-wise mismatch overlay.
 ///
-/// `changed` is used by hexmaps when both cells are set but the nibbles
-/// differ. Bitmaps leave it empty.
+/// `missing` / `extra` are `(x, y, cell)`. Bitmaps store `1` in `cell`; hexmaps
+/// store the nibble. `changed` is hexmaps only: `(x, y, actual, expected)`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Diff {
     pub overlay: String,
-    pub missing: Vec<(u32, u32)>,
-    pub extra: Vec<(u32, u32)>,
+    pub missing: Vec<(u32, u32, u8)>,
+    pub extra: Vec<(u32, u32, u8)>,
     pub changed: Vec<(u32, u32, u8, u8)>,
 }
 
@@ -61,13 +61,24 @@ macro_rules! assert_hexmap_eq {
     };
 }
 
-pub(crate) fn fmt_points(points: &[(u32, u32)]) -> String {
+pub(crate) fn fmt_points(points: &[(u32, u32, u8)]) -> String {
     if points.is_empty() {
         return "none".into();
     }
     points
         .iter()
-        .map(|(x, y)| format!("({x}, {y})"))
+        .map(|(x, y, _)| format!("({x}, {y})"))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+pub(crate) fn fmt_cells(cells: &[(u32, u32, u8)]) -> String {
+    if cells.is_empty() {
+        return "none".into();
+    }
+    cells
+        .iter()
+        .map(|(x, y, n)| format!("({x}, {y}) {n:X}"))
         .collect::<Vec<_>>()
         .join(", ")
 }
