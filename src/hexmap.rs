@@ -24,15 +24,18 @@ pub fn plot_hex<T: Packed, const H: usize>(
 
 /// A [`Diff`] of a mismatch, or `None` when the grids match.
 ///
-/// The diff formats as the overlay.
-pub fn hexmap_diff<T: Packed, const H: usize>(left: [T; H], right: [T; H]) -> Option<Diff<T, H>> {
+/// The diff borrows both grids and formats as the overlay.
+pub fn hexmap_diff<'a, T: Packed, const H: usize>(
+    left: &'a [T; H],
+    right: &'a [T; H],
+) -> Option<Diff<'a, T, H>> {
     Diff::hexmap(left, right)
 }
 
 /// Compare packed hexmap rows and panic with an overlay on mismatch.
 #[doc(hidden)]
 #[track_caller]
-pub fn assert_hexmaps<T: Packed, const H: usize>(left: [T; H], right: [T; H]) {
+pub fn assert_hexmaps<T: Packed, const H: usize>(left: &[T; H], right: &[T; H]) {
     if let Some(diff) = hexmap_diff(left, right) {
         panic!("hexmap mismatch (. empty  1-F match  - missing  + extra  * changed)\n{diff}");
     }
@@ -42,8 +45,8 @@ pub fn assert_hexmaps<T: Packed, const H: usize>(left: [T; H], right: [T; H]) {
 #[doc(hidden)]
 #[track_caller]
 pub fn assert_hexmaps_msg<T: Packed, const H: usize>(
-    left: [T; H],
-    right: [T; H],
+    left: &[T; H],
+    right: &[T; H],
     msg: core::fmt::Arguments<'_>,
 ) {
     if let Some(diff) = hexmap_diff(left, right) {

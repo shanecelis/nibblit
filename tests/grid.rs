@@ -82,7 +82,7 @@ fn custom_message_is_in_the_panic() {
 
 #[test]
 fn bitmap_diff_is_none_when_equal() {
-    assert!(bitmap_diff([0b1010_0000u8], [0b1010_0000u8]).is_none());
+    assert!(bitmap_diff(&[0b1010_0000u8], &[0b1010_0000u8]).is_none());
 }
 
 #[test]
@@ -98,7 +98,9 @@ fn plot_hex_packs_high_nibble_left() {
 
 #[test]
 fn hexmap_mismatch_marks_missing_extra_changed() {
-    let diff = hexmap_diff([0x0AC0u16], [0xBF00u16]).expect("grids differ");
+    let left = [0x0AC0u16];
+    let right = [0xBF00u16];
+    let diff = hexmap_diff(&left, &right).expect("grids differ");
     let msg = diff.to_string();
     assert!(
         msg.contains("0 | -*+."),

@@ -22,10 +22,10 @@ pub use row::Packed;
 #[macro_export]
 macro_rules! assert_bitmap_eq {
     ($actual:expr, $expected:expr $(,)?) => {
-        $crate::assert_bitmaps($actual, $expected)
+        $crate::assert_bitmaps(&$actual, &$expected)
     };
     ($actual:expr, $expected:expr, $($arg:tt)+) => {
-        $crate::assert_bitmaps_msg($actual, $expected, ::core::format_args!($($arg)+))
+        $crate::assert_bitmaps_msg(&$actual, &$expected, ::core::format_args!($($arg)+))
     };
 }
 
@@ -38,9 +38,9 @@ macro_rules! assert_bitmap_eq {
 #[macro_export]
 macro_rules! assert_hexmap_eq {
     ($actual:expr, $expected:expr $(,)?) => {
-        $crate::assert_hexmaps($actual, $expected)
+        $crate::assert_hexmaps(&$actual, &$expected)
     };
     ($actual:expr, $expected:expr, $($arg:tt)+) => {
-        $crate::assert_hexmaps_msg($actual, $expected, ::core::format_args!($($arg)+))
+        $crate::assert_hexmaps_msg(&$actual, &$expected, ::core::format_args!($($arg)+))
     };
 }

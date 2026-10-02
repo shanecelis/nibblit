@@ -1,16 +1,16 @@
-//! Owned grids and the overlay produced by walking them.
+//! Borrowed grids and the overlay produced by walking them.
 
 use crate::Packed;
 use core::fmt::{self, Write};
 
 /// A mismatch between two packed grids of height `H`.
 ///
-/// Left is the first grid, right is the second. The rows stay in the arrays.
-/// Formatting writes the overlay; [`Self::stats`] reports the cells behind it.
+/// Left is the first grid, right is the second. Formatting writes the overlay;
+/// [`Self::stats`] reports the cells behind it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Diff<T: Packed, const H: usize> {
-    left: [T; H],
-    right: [T; H],
+pub struct Diff<'a, T: Packed, const H: usize> {
+    left: &'a [T; H],
+    right: &'a [T; H],
     mode: Mode,
 }
 
@@ -50,8 +50,8 @@ impl Class {
     }
 }
 
-impl<T: Packed, const H: usize> Diff<T, H> {
-    pub(crate) fn bitmap(left: [T; H], right: [T; H]) -> Option<Self> {
+impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
+    pub(crate) fn bitmap(left: &'a [T; H], right: &'a [T; H]) -> Option<Self> {
         if left == right {
             None
         } else {
@@ -63,7 +63,7 @@ impl<T: Packed, const H: usize> Diff<T, H> {
         }
     }
 
-    pub(crate) fn hexmap(left: [T; H], right: [T; H]) -> Option<Self> {
+    pub(crate) fn hexmap(left: &'a [T; H], right: &'a [T; H]) -> Option<Self> {
         if left == right {
             None
         } else {
@@ -162,7 +162,7 @@ impl DiffStats {
     }
 }
 
-impl<T: Packed, const H: usize> fmt::Display for Diff<T, H> {
+impl<T: Packed, const H: usize> fmt::Display for Diff<'_, T, H> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut stats = DiffStats::default();
         let label = label_width(H);
