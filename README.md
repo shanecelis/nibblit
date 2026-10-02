@@ -1,4 +1,4 @@
-# bitlit
+# nibblit
 
 Check equality for bitmap literals and hexmap literals.
 
@@ -16,7 +16,7 @@ literal syntax `0b01010101`, specifying an inline bitmap is easy. Since `[]`
 implements `Eq`, one can do the following without any crate:
 
 ```rust,should_panic
-# use bitlit::plot_bits;
+# use nibblit::plot_bits;
 #[rustfmt::skip]
 assert_eq!(plot_bits::<u8, 8>((1..=6).map(|i| (i, i)).chain([(0,7)])), [
     0b10000000, // #.......
@@ -67,7 +67,7 @@ Bitmaps suffice in many cases but when one needs more than one bit, hexadecimal
 offers 16 values per cell in each half byte or nybble `[0, F]`.
 
 ```rust,should_panic
-# use bitlit::plot_hex;
+# use nibblit::plot_hex;
 #[rustfmt::skip]
 assert_eq!(plot_hex::<u32, 8>((0..=7).map(|i| (i, i, (2 * i + 1) as u8))), [
     0x10000000, // 1.......

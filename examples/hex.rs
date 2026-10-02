@@ -1,4 +1,4 @@
-use bitlit::{assert_hexmap_eq, plot_hex};
+use nibblit::{assert_hexmap_eq, plot_hex};
 
 fn main() {
     let err = std::panic::catch_unwind(|| {

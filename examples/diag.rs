@@ -1,4 +1,4 @@
-use bitlit::{assert_bitmap_eq, plot_bits};
+use nibblit::{assert_bitmap_eq, plot_bits};
 
 fn main() {
     let err = std::panic::catch_unwind(|| {

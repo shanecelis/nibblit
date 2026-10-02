@@ -1,4 +1,4 @@
-use bitlit::{plot_bits, plot_hex};
+use nibblit::{plot_bits, plot_hex};
 use std::panic;
 
 fn example(f: impl FnOnce() + panic::UnwindSafe) {

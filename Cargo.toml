@@ -1,5 +1,5 @@
 [package]
-name = "bitlit"
+name = "nibblit"
 description = "Check equality for bitmap literals and hexmap literals."
 authors = ["Shane Celis <shane.celis@gmail.com>"]
 version = "0.1.0"
@@ -7,8 +7,8 @@ license = "MIT OR Apache-2.0"
 edition = "2021"
 keywords = ["bitmap", "literal", "hex", "test", "assert"]
 readme = "README.md"
-documentation = "https://docs.rs/bitlit"
-repository = "https://github.com/shanecelis/bitlit"
+documentation = "https://docs.rs/nibblit"
+repository = "https://github.com/shanecelis/nibblit"
 categories = ["development-tools::testing"]
 
 [package.metadata.docs.rs]

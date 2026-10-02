@@ -1,4 +1,4 @@
-use bitlit::{assert_bitmap_eq, assert_hexmap_eq, plot_bits, plot_hex, Cell, Conflict, Diff};
+use nibblit::{assert_bitmap_eq, assert_hexmap_eq, plot_bits, plot_hex, Cell, Conflict, Diff};
 
 #[test]
 fn equal_grids_pass() {
