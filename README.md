@@ -120,3 +120,23 @@ respectively.
 ## License
 
 This crate is licensed under the MIT License or the Apache License 2.0.
+
+## Origin
+
+This functionality was originally developed to test
+[nano9_raster](https://github.com/shanecelis/nano9_raster/tree/main) so that I
+could
+[check](https://github.com/shanecelis/nano9_raster/blob/42a6f76e9cf66156fb799deb42653f8eb56a378c/src/ellipse.rs#L326)
+a variety of drawing algorithms without resorting reading or writing real
+images.
+
+``` rust,ignore
+#[rustfmt::skip]
+    assert_bitmap_eq!(plot_bits::<5>(Ellipse::from_rect((0, 0), (8, 4)), 9), [
+        0b001111100, // ..#####..
+        0b010000010, // .#.....#.
+        0b100000001, // #.......#
+        0b010000010, // .#.....#.
+        0b001111100, // ..#####..
+    ], 9);
+```
