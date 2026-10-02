@@ -1,17 +1,21 @@
 # bitlit
 
-This crate checks equality of bitmap literals and hexmap literals. 
+This crate checks equality bitmap literals and hexmap literals. 
 
 ## Motivation
 
-When an algorithm produces visual results, one wants to verify the results
-visually.
+When an algorithm produces visual results, its best to verify the results
+visually even if its only a bitmap.
 
 ## The Trick
 
-This crate was born of a great bit of Rust syntax goodness. 
+This crate was born out of a great bit (pun intended) of Rust syntax. Using bit
+literal syntax `0b01`, specifying an inline bitmap is easy. Since `[]`
+implements `Eq`, one can do the following without any crates:
 
 ```rust
+# use bitlit::plot_bits;
+
 #[rustfmt::skip]
 assert_eq!(plot_bits::<u8, 8>((0..=7).map(|i| (i, i))), [
     0b10000000, // #.......
@@ -23,20 +27,14 @@ assert_eq!(plot_bits::<u8, 8>((0..=7).map(|i| (i, i))), [
     0b00000010, // ......#.
     0b00000001, // .......#
 ]);
-
-#[rustfmt::skip]
-assert_hexmap_eq!([0x1F00u16], [0x1F00]);
 ```
 
-Packed grid literals for tests. Rows are integers: `0b` for 1-bit cells, `0x`
-for 4-bit cells. The high bit or nibble is `x = 0`. Width is the row type:
-`u8` is 8 cells, `u16` is 16, and so on.
+## The Advantage 
 
-Write one row per line and put `#[rustfmt::skip]` on the assertion so rustfmt
-does not wrap the grid.
+The advantage this crate offers is what it prints when things don't match.
 
 ```rust
-use bitlit::{assert_bitmap_eq, assert_hexmap_eq, plot_bits};
+# use bitlit::{assert_bitmap_eq, plot_bits};
 
 #[rustfmt::skip]
 assert_bitmap_eq!(plot_bits::<u8, 8>((0..=7).map(|i| (i, i))), [
@@ -49,9 +47,6 @@ assert_bitmap_eq!(plot_bits::<u8, 8>((0..=7).map(|i| (i, i))), [
     0b00000010, // ......#.
     0b00000001, // .......#
 ]);
-
-#[rustfmt::skip]
-assert_hexmap_eq!([0x1F00u16], [0x1F00]);
 ```
 
 Same line, but the plot omits `(0, 0)` and `(7, 7)` and adds the other two corners.
@@ -90,11 +85,76 @@ missing: (0, 0), (7, 7)
 extra: (7, 0), (0, 7)
 ```
 
-Bitmap overlay: `#` match, `.` empty, `-` missing, `+` extra. Hex overlay
-prints the nibble on a match (`0` as `.`) and `*` when both cells are set but
-differ. Runtime equality is `==`. `bitmap_diff` / `hexmap_diff` return the
-overlay without panicking. `assert_bitmap_eq!` / `assert_hexmap_eq!` take an
-optional format string, same as `assert_eq!`.
+Bitmap overlay: `#` match, `.` empty, `-` missing, `+` extra. Runtime equality is
+`==`. `bitmap_diff` / `hexmap_diff` return the overlay without panicking.
+`assert_bitmap_eq!` / `assert_hexmap_eq!` take an optional format string, same as
+`assert_eq!`.
+
+## Hexmap
+
+Same diagonal, each cell a nibble. `u32` is eight nibbles wide. Values count by
+two so `A`–`F` show up:
+
+```rust
+use bitlit::{assert_hexmap_eq, plot_hex};
+
+#[rustfmt::skip]
+assert_hexmap_eq!(plot_hex::<u32, 8>((0..=7).map(|i| (i, i, (2 * i + 1) as u8))), [
+    0x10000000, // 1.......
+    0x03000000, // .3......
+    0x00500000, // ..5.....
+    0x00070000, // ...7....
+    0x00009000, // ....9...
+    0x00000B00, // .....B..
+    0x000000D0, // ......D.
+    0x0000000F, // .......F
+]);
+```
+
+Same line, but the plot omits `(0, 0)` and `(7, 7)` and adds the other two corners.
+The assertion panics with an overlay (`.` empty, `1`–`F` match, `-` missing, `+`
+extra, `*` changed):
+
+```rust,ignore
+use bitlit::{assert_hexmap_eq, plot_hex};
+
+#[rustfmt::skip]
+assert_hexmap_eq!(
+    plot_hex::<u32, 8>(
+        (1..=6)
+            .map(|i| (i, i, (2 * i + 1) as u8))
+            .chain([(7, 0, 1), (0, 7, 0xF)]),
+    ),
+    [
+        0x10000000, // 1.......
+        0x03000000, // .3......
+        0x00500000, // ..5.....
+        0x00070000, // ...7....
+        0x00009000, // ....9...
+        0x00000B00, // .....B..
+        0x000000D0, // ......D.
+        0x0000000F, // .......F
+    ],
+);
+```
+
+```text
+hexmap mismatch (. empty  1-F match  - missing  + extra  * changed)
+0 | -......+
+1 | .3......
+2 | ..5.....
+3 | ...7....
+4 | ....9...
+5 | .....B..
+6 | ......D.
+7 | +......-
+missing: (0, 0), (7, 7)
+extra: (7, 0), (0, 7)
+changed: none
+```
+
+Hex overlay prints the nibble on a match (`0` as `.`) and `*` when both cells are
+set but differ.
 
 ## License
 
