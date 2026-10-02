@@ -86,7 +86,7 @@ extra: (7, 0), (0, 7)
 ```
 
 Bitmap overlay: `#` match, `.` empty, `-` missing, `+` extra. Runtime equality is
-`==`. `bitmap_diff` / `hexmap_diff` return a `Diff` that formats as the overlay, without panicking.
+`==`. `Diff::bitmap` / `Diff::hexmap` return a `Diff` that formats as the overlay, without panicking.
 `assert_bitmap_eq!` / `assert_hexmap_eq!` take an optional format string, same as
 `assert_eq!`.
 

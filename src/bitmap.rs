@@ -19,21 +19,11 @@ pub fn plot_bits<T: Packed, const H: usize>(
     core::array::from_fn(|y| T::from_bits(grid[y]))
 }
 
-/// A [`Diff`] of a mismatch, or `None` when the grids match.
-///
-/// The diff borrows both grids and formats as the overlay.
-pub fn bitmap_diff<'a, T: Packed, const H: usize>(
-    left: &'a [T; H],
-    right: &'a [T; H],
-) -> Option<Diff<'a, T, H>> {
-    Diff::bitmap(left, right)
-}
-
 /// Compare packed bitmap rows and panic with an overlay on mismatch.
 #[doc(hidden)]
 #[track_caller]
 pub fn assert_bitmaps<T: Packed, const H: usize>(left: &[T; H], right: &[T; H]) {
-    if let Some(diff) = bitmap_diff(left, right) {
+    if let Some(diff) = Diff::bitmap(left, right) {
         panic!("bitmap mismatch (# match  . empty  - missing  + extra)\n{diff}");
     }
 }
@@ -46,7 +36,7 @@ pub fn assert_bitmaps_msg<T: Packed, const H: usize>(
     right: &[T; H],
     msg: core::fmt::Arguments<'_>,
 ) {
-    if let Some(diff) = bitmap_diff(left, right) {
+    if let Some(diff) = Diff::bitmap(left, right) {
         panic!("bitmap mismatch (# match  . empty  - missing  + extra): {msg}\n{diff}");
     }
 }

@@ -51,7 +51,11 @@ impl Class {
 }
 
 impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
-    pub(crate) fn bitmap(left: &'a [T; H], right: &'a [T; H]) -> Option<Self> {
+    /// Bitmap mismatch, or `None` when the grids match.
+    ///
+    /// Borrows both grids. Formatting writes the overlay (`#` match, `.` empty,
+    /// `-` missing, `+` extra).
+    pub fn bitmap(left: &'a [T; H], right: &'a [T; H]) -> Option<Self> {
         if left == right {
             None
         } else {
@@ -63,7 +67,11 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
         }
     }
 
-    pub(crate) fn hexmap(left: &'a [T; H], right: &'a [T; H]) -> Option<Self> {
+    /// Hexmap mismatch, or `None` when the grids match.
+    ///
+    /// Borrows both grids. Formatting writes the overlay (`.` empty, `1`–`F`
+    /// match, `-` missing, `+` extra, `*` changed).
+    pub fn hexmap(left: &'a [T; H], right: &'a [T; H]) -> Option<Self> {
         if left == right {
             None
         } else {

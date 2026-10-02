@@ -5,13 +5,13 @@ mod diff;
 mod hexmap;
 mod row;
 
+pub use bitmap::plot_bits;
 #[doc(hidden)]
 pub use bitmap::{assert_bitmaps, assert_bitmaps_msg};
-pub use bitmap::{bitmap_diff, plot_bits};
 pub use diff::{Diff, DiffStats};
+pub use hexmap::plot_hex;
 #[doc(hidden)]
 pub use hexmap::{assert_hexmaps, assert_hexmaps_msg};
-pub use hexmap::{hexmap_diff, plot_hex};
 pub use row::Packed;
 
 /// Compare packed `0b` bitmap rows. Panics with an overlay on mismatch.

@@ -1,4 +1,4 @@
-use bitlit::{assert_bitmap_eq, assert_hexmap_eq, bitmap_diff, hexmap_diff, plot_bits, plot_hex};
+use bitlit::{assert_bitmap_eq, assert_hexmap_eq, plot_bits, plot_hex, Diff};
 
 #[test]
 fn equal_grids_pass() {
@@ -82,7 +82,7 @@ fn custom_message_is_in_the_panic() {
 
 #[test]
 fn bitmap_diff_is_none_when_equal() {
-    assert!(bitmap_diff(&[0b1010_0000u8], &[0b1010_0000u8]).is_none());
+    assert!(Diff::bitmap(&[0b1010_0000u8], &[0b1010_0000u8]).is_none());
 }
 
 #[test]
@@ -100,7 +100,7 @@ fn plot_hex_packs_high_nibble_left() {
 fn hexmap_mismatch_marks_missing_extra_changed() {
     let left = [0x0AC0u16];
     let right = [0xBF00u16];
-    let diff = hexmap_diff(&left, &right).expect("grids differ");
+    let diff = Diff::hexmap(&left, &right).expect("grids differ");
     let msg = diff.to_string();
     assert!(
         msg.contains("0 | -*+."),
