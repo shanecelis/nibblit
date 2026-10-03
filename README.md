@@ -47,9 +47,9 @@ assertion `left == right` failed
 
 ## The Advantage 
 
-The beauty of this crate is what if offers when things do not match: an ASCII
-representation of the bitmap along with details of where the bits were or
-were not.
+The beauty of this crate is what `assert_bitmap_eq` offers when things do not
+match: an ASCII representation of the bitmap along with details of where the
+bits were or were not.
 
 ```text
 bitmap mismatch (# match  . empty  - right only  + left only)
@@ -96,7 +96,7 @@ assertion `left == right` failed
 ```
 
 No shame in not being a hexadecimally gifted machine. Try to determine the
-difference below. Easy! Even for humans.
+difference `assert_hexmap_eq` provides below. Easy! Even for humans.
 
 ```text
 hexmap mismatch (. empty  1-F match  - right only  + left only  * changed)
