@@ -1,5 +1,9 @@
 # nibblit
 
+[![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](#license)
+[![crates.io](https://img.shields.io/crates/v/nibblit.svg)](https://crates.io/crates/nibblit)
+[![docs.rs](https://docs.rs/nibblit/badge.svg)](https://docs.rs/nibblit)
+
 Check equality for nibble literals and bit literals.
 
 ## Motivation
