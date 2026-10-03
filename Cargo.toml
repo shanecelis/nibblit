@@ -1,6 +1,6 @@
 [package]
 name = "nibblit"
-description = "Check equality for bitmap literals and hexmap literals."
+description = "Check equality for nibble literals and bit literals."
 authors = ["Shane Celis <shane.celis@gmail.com>"]
 version = "0.1.0"
 license = "MIT OR Apache-2.0"

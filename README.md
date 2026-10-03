@@ -1,6 +1,6 @@
 # nibblit
 
-Check equality for bitmap literals and hexmap literals.
+Check equality for nibble literals and bit literals.
 
 ## Motivation
 
@@ -64,7 +64,7 @@ right only: (0, 0), (7, 7)
 # Hexmap
 
 Bitmaps suffice in many cases but when one needs more than one bit, hexadecimal
-offers 16 values per cell in each half byte or nybble `[0, F]`.
+offers 16 values per cell in each half byte or nibble `[0, F]`.
 
 ```rust,should_panic
 # use nibblit::plot_hex;
@@ -92,7 +92,7 @@ assertion `left == right` failed
 ```
 
 No shame in not being a hexadecimally gifted machine. Try to determine the
-difference below. Easy! even for humans.
+difference below. Easy! Even for humans.
 
 ```text
 hexmap mismatch (. empty  1-F match  - right only  + left only  * changed)
@@ -114,8 +114,12 @@ changed: (1, 1) 3≠2
 ### Can bitmaps be wider than 8 bits?
 
 Yes, bitmaps can be 8, 16, 32, or 64 bits wide. Just use the corresponding data
-type u8, u16, u32, or u64. And hexmaps can be 2, 4, 8, or 16 nybbles wide
+type u8, u16, u32, or u64. And hexmaps can be 2, 4, 8, or 16 nibbles wide
 respectively.
+
+### Why not "nybblit"?
+
+My preferred spelling of half-a-byte is "nybble" but "nibblit" seemed easier to pronounce than "nybblit". 
 
 ## License
 
