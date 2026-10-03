@@ -24,7 +24,7 @@ pub fn plot_bits<T: Packed, const H: usize>(
 #[track_caller]
 pub fn assert_bitmaps<T: Packed, const H: usize>(left: &[T; H], right: &[T; H]) {
     if let Some(diff) = Diff::bitmap(left, right) {
-        panic!("bitmap mismatch (# match  . empty  - right only  + left only)\n{diff}");
+        panic!("bitmap mismatch (# match  . empty  - left only  + right only)\n{diff}");
     }
 }
 
@@ -37,6 +37,6 @@ pub fn assert_bitmaps_msg<T: Packed, const H: usize>(
     msg: core::fmt::Arguments<'_>,
 ) {
     if let Some(diff) = Diff::bitmap(left, right) {
-        panic!("bitmap mismatch (# match  . empty  - right only  + left only): {msg}\n{diff}");
+        panic!("bitmap mismatch (# match  . empty  - left only  + right only): {msg}\n{diff}");
     }
 }

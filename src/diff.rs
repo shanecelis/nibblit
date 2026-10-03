@@ -46,7 +46,7 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
     /// Bitmap mismatch, or `None` when the grids match.
     ///
     /// Borrows both grids. Formatting writes the overlay (`#` match, `.` empty,
-    /// `-` right only, `+` left only).
+    /// `-` left only, `+` right only).
     pub fn bitmap(left: &'a [T; H], right: &'a [T; H]) -> Option<Self> {
         if left == right {
             None
@@ -62,7 +62,7 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
     /// Hexmap mismatch, or `None` when the grids match.
     ///
     /// Borrows both grids. Formatting writes the overlay (`.` empty, `1`–`F`
-    /// match, `-` right only, `+` left only, `*` changed).
+    /// match, `-` left only, `+` right only, `*` changed).
     pub fn hexmap(left: &'a [T; H], right: &'a [T; H]) -> Option<Self> {
         if left == right {
             None
@@ -107,8 +107,8 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
                 match (left, right) {
                     (true, true) => ('#', None),
                     (false, false) => ('.', None),
-                    (false, true) => ('-', Some(Conflict::Right(1))),
-                    (true, false) => ('+', Some(Conflict::Left(1))),
+                    (false, true) => ('+', Some(Conflict::Right(1))),
+                    (true, false) => ('-', Some(Conflict::Left(1))),
                 }
             }
             Mode::Hexmap => {
@@ -123,8 +123,8 @@ impl<'a, T: Packed, const H: usize> Diff<'a, T, H> {
                             .to_ascii_uppercase(),
                         None,
                     ),
-                    (0, value) => ('-', Some(Conflict::Right(value))),
-                    (value, 0) => ('+', Some(Conflict::Left(value))),
+                    (0, value) => ('+', Some(Conflict::Right(value))),
+                    (value, 0) => ('-', Some(Conflict::Left(value))),
                     (left, right) => ('*', Some(Conflict::Changed { left, right })),
                 }
             }

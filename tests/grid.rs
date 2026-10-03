@@ -41,12 +41,12 @@ fn mismatch_marks_left_only_and_right_only() {
     .expect_err("grids differ");
     let msg = panic_message(&err);
     assert!(
-        msg.contains("# match") && msg.contains("- right only") && msg.contains("+ left only"),
+        msg.contains("# match") && msg.contains("- left only") && msg.contains("+ right only"),
         "legend: {msg}"
     );
     assert!(
-        msg.contains("0 | -+......"),
-        "row 0 should be `-+......` (right only, then left only): {msg}"
+        msg.contains("0 | +-......"),
+        "row 0 should be `+-......` (`+` right only, then `-` left only): {msg}"
     );
     assert!(
         msg.contains("1 | ..#....."),
@@ -75,7 +75,7 @@ fn custom_message_is_in_the_panic() {
         "custom message should appear: {msg}"
     );
     assert!(
-        msg.contains("0 | -+......"),
+        msg.contains("0 | +-......"),
         "overlay should still follow: {msg}"
     );
 }
@@ -103,8 +103,8 @@ fn hexmap_mismatch_marks_left_right_changed() {
     let diff = Diff::hexmap(&left, &right).expect("grids differ");
     let msg = diff.to_string();
     assert!(
-        msg.contains("0 | -*+."),
-        "row should be right only, changed, left only, then empty: {msg}"
+        msg.contains("0 | +*-."),
+        "row should be `+` right only, `*` changed, `-` left only, then empty: {msg}"
     );
     assert!(
         msg.contains("right only: (0, 0) B") && msg.contains("left only: (2, 0) C"),

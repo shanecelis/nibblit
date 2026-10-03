@@ -17,7 +17,7 @@ pub use row::Packed;
 
 /// Compare packed `0b` bitmap rows. Panics with an overlay on mismatch.
 ///
-/// Overlay glyphs: `#` match, `.` empty, `-` right only, `+` left only.
+/// Overlay glyphs: `#` match, `.` empty, `-` left only, `+` right only.
 /// Put `#[rustfmt::skip]` on the assertion so each row stays on its own line.
 /// A trailing format string is included in the panic, same as [`assert_eq!`].
 #[macro_export]
@@ -32,7 +32,7 @@ macro_rules! assert_bitmap_eq {
 
 /// Compare packed `0x` hexmap rows. Panics with an overlay on mismatch.
 ///
-/// Overlay glyphs: `0` as `.`, `1`–`F` match, `-` right only, `+` left only, `*`
+/// Overlay glyphs: `0` as `.`, `1`–`F` match, `-` left only, `+` right only, `*`
 /// changed.
 /// Put `#[rustfmt::skip]` on the assertion so each row stays on its own line.
 /// A trailing format string is included in the panic, same as [`assert_eq!`].
